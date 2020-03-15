@@ -1,0 +1,11 @@
+.modal-footer .btn {
+    min-width: 80px;
+}
+
+.modal-footer .btn + .btn {
+    margin-left: 15px;
+}
+
+.form-check-input {
+    margin-top: 6px;
+}

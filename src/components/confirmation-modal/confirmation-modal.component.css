@@ -1,0 +1,10 @@
+
+.confirmation-modal .modal-lg {
+    max-width: 330px;
+}
+.confirmation-modal .modal-footer {
+    justify-content: space-between;
+}
+.confirmation-modal .modal-footer .btn {
+    min-width: 80px;
+}
