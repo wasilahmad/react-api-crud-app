@@ -7,6 +7,8 @@ import API from './services/api';
 // components
 import AddEditTodoModal from './components/add-edit-modal/add-edit-todo-component';
 import ConfirmationModal from './components/confirmation-modal/confirmation-modal.component';
+import Loader from './components/loader/loader.component';
+import SearchTodo from './components/search-todo/search-todo.component';
 
 // font-awesome settings 
 import { library } from '@fortawesome/fontawesome-svg-core';
@@ -27,8 +29,18 @@ export class App extends Component {
       title: '',
       completed: false
     },
-    isConfirmationModalVisible: false
+    isConfirmationModalVisible: false,
+    isLoading: true,
+    searchField:''
   };
+
+
+  handleTodoSearch = (e) => {
+    this.setState({
+      ...this.state,
+      searchField: e.target.value
+    });
+  }
 
   handleChange = e => {    
     this.setState({
@@ -47,15 +59,27 @@ export class App extends Component {
       } 
     });
   }
-
+  
   addTodo = () => {
     const { payload, isModalVisible } = this.state;
     const newTodo = {...payload, id: Math.floor(1000 + Math.random() * 9000), userId:1};
-    const tempTodos = [newTodo, ...this.state.todos];
+
     // to validate input field
     if(payload.title !== undefined && payload.title !== '') {
-      this.setState({ todos: tempTodos});
-      this.closeModal(isModalVisible);
+      // to show loader while adding the data
+      this.setState({isLoading: true});
+      
+      // add todo API call
+      API.post(`/todos`, newTodo)
+      .then(response => {
+        const tempTodos = [response.data, ...this.state.todos]; 
+        this.setState({ todos: tempTodos, isLoading: false});     
+      });
+
+      // to close todo modal
+      this.closeModal(isModalVisible);      
+      
+      // to reset add todo form feilds
       this.setState({
         payload: {
           title: '',
@@ -71,12 +95,22 @@ export class App extends Component {
     const tempTodos = [...this.state.todos];
     const { id } = payload;
     let foundIndex = tempTodos.findIndex( item => item.id === id);
-    tempTodos[foundIndex] = payload;
+
      // to validate input field
      if(payload.title !== undefined && payload.title !== '') {
       this.setState({
-        ...this.state,
-        todos: tempTodos
+        isLoading: true
+      });
+      // edit todo API call
+      API.put(`/todos/${id}`, payload)
+      .then(response => {
+        tempTodos[foundIndex] = response.data;
+        // console.log('edit', response.data) 
+        this.setState({
+          ...this.state,
+          todos: tempTodos,
+          isLoading:false
+        });    
       });
       this.closeModal(this.state.isModalVisible);
     } else {
@@ -87,30 +121,48 @@ export class App extends Component {
   deleteTodo = id => {
      const tempTodos = [...this.state.todos];
      const todos = tempTodos.filter( item => item.id !== id );
-     this.setState({
-       ...this.state,
-       todos
-     });
+     this.setState({isLoading: true});
+          
+     API.delete(`/todos/${id}`)
+     .then(response => {
+       // console.log(response);
+       console.log(response.data);
+        this.setState({
+          ...this.state,
+          todos,
+          isLoading: false
+        });      
+    });
   }
 
   completedTodo = id => {
     const tempTodos = [...this.state.todos];
     const foundIndex = tempTodos.findIndex( item => item.id === id);
-    const todo = tempTodos[foundIndex];
-    // console.log(todo)
-    todo.completed = true;
-    this.setState({
-      ...this.state,
-      todos: tempTodos
-    });
+    
+    this.setState({ isLoading : true });
+
+    // to update perticular key:value pair
+    API.patch(`/todos/${id}`, { completed : true })
+    .then(response => {
+      tempTodos[foundIndex] = response.data;
+      // console.log('edit', tempTodos[foundIndex]); 
+      this.setState({
+        ...this.state,
+        todos: tempTodos,
+        isLoading: false
+      });       
+    });    
   }
 
   refreshTodos() {
-    API.get(`todos/`)
+    API.get(`/todos`)
     .then(response => {
       // console.log(response);
       // console.log(response.data.slice(0, 10));
-      this.setState({todos: response.data.slice(0, 10)})
+      this.setState({
+        todos: response.data.slice(0, 10),
+        isLoading: false
+      });
     });
   }
 
@@ -133,7 +185,7 @@ export class App extends Component {
   closeModal = isVisible => {
     this.setState({isModalVisible: !isVisible});
   } 
-
+  
   // confirmation cancel click
   handleOk = (id) => {
      this.deleteTodo(id);
@@ -151,19 +203,23 @@ export class App extends Component {
       isConfirmationModalVisible: isVisible,
       payload
     });
-    console.log(payload)
+    // console.log(payload)
   }
   
   closeConfirmationModal = isVisible => {
     this.setState({isConfirmationModalVisible: !isVisible});
-  } 
+  }   
 
   componentDidMount() {
     this.refreshTodos();
   }
 
   render() {
-    const { todos } = this.state;
+    const { todos, searchField } = this.state;
+
+    const filteredTodo = todos.filter( todo => {
+      return todo.title.toLowerCase().includes(searchField.toLowerCase());
+    });
 
     return (
       <div className="container">
@@ -176,12 +232,7 @@ export class App extends Component {
           <div className="col-6">
             <div className="row mb-3">
               <div className="col-6">
-                <div className="input-group">
-                  <input type="text" className="form-control" name="searchTodo" onChange={this.handleChange} placeholder="Search Todo" aria-label="search todo" aria-describedby="basic-addon2" />
-                  <div className="input-group-append">
-                    <span className="input-group-text" id="basic-addon2"><FontAwesomeIcon icon="search"/></span>
-                  </div>
-                </div>
+                <SearchTodo handleChange={this.handleTodoSearch} placeholder="Search Todo"/>
               </div>
               <div className="col-6 text-right">
                 <button type="button" className="btn btn-outline-primary" onClick={() => this.openModal(true, 'ADD', this.state.payload)}>
@@ -192,15 +243,14 @@ export class App extends Component {
 
             <ul className="list-group">
             {
-              todos.map( (todo, index) => {
+              filteredTodo.map( (todo, index) => {
                 return (
                   <li className={`list-group-item ${todo.completed ? 'completed' :''}`} key={todo.id}>
                     {`${todo.id}. ${todo.title}`}
                     <span className="action-button">  
                       {
                         !todo.completed ? (<FontAwesomeIcon icon="check-square" onClick={() => this.completedTodo(todo.id)} /> ) : null
-                      }                
-                                     
+                      }          
                       <FontAwesomeIcon icon="pen" onClick={() => this.openModal(true, 'EDIT', todo)}/>
                       <FontAwesomeIcon icon="trash" onClick={() => this.openConfirmationModal(true, todo)}/>
                     </span>
@@ -229,6 +279,8 @@ export class App extends Component {
         handleOk={this.handleOk}
         payload={this.state.payload}
         />
+
+        <Loader isLoading={this.state.isLoading} />
 
       </div>
     );
