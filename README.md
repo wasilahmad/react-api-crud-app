@@ -1,16 +1,23 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+
+## Demo
+[Tutorial Demo: https://wasilahmad.github.io/react-api-crud-app](https://wasilahmad.github.io/react-api-crud-app)
+![Screenshot](https://github.com/wasilahmad/react-api-crud-app/blob/master/public/react-api-crud-app.png 'Tutorial Screenshot')
+
+
+## What You'll Learn
+-   To Perform CRUD operaiotn suing API services
+-   To perform post/put/patch/delete API operations from jsonplaceholder
+-   Use of Axios in react
+-   Use of fontawesome icons in react
+
 
 ## Available Scripts
 
-In the project directory, you can run:
+### Install dependencies
+npm install
 
-### `yarn start`
+### Start the project
+npm run start
 
-Runs the app in the development mode.<br />
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
-
-The page will reload if you make edits.<br />
-You will also see any lint errors in the console.
-
-Demo URL: https://wasilahmad.github.io/react-api-crud-app/
+### Navigate to http://localhost:3000
 
