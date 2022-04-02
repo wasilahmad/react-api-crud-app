@@ -2,7 +2,7 @@
 ## Demo
 [Tutorial Demo: https://wasilahmad.github.io/react-api-crud-app](https://wasilahmad.github.io/react-api-crud-app)
 
-![Screenshot](https://github.com/wasilahmad/redux-saga-todo/blob/main/redux-saga-tutoria-snap.png 'Tutorial Screenshot')
+![Screenshot](https://github.com/wasilahmad/react-api-crud-app/blob/master/public/react-api-crud-app.png 'Tutorial Screenshot')
 
 
 ## What You'll Learn
